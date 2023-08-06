@@ -1,4 +1,6 @@
 #ifndef BUFFER_H
+#define BUFFER_H
+
 #include <stdlib.h>
 
 #define MAX_LINE_SIZE 1024

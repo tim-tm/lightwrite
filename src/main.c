@@ -95,6 +95,7 @@ int main(void) {
       data = prepare_string(font, renderer, 0, i * data.font_h,
                             context.lines[i].buffer, f_colr);
       SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
+      SDL_DestroyTexture(data.texture);
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -106,7 +107,6 @@ int main(void) {
         .h = data.font_h};
     SDL_RenderFillRect(renderer, &rect);
 
-    SDL_DestroyTexture(data.texture);
     SDL_RenderPresent(renderer);
   }
 

@@ -42,11 +42,6 @@ void buffer_push_line(buffer_context *context) {
   context->cursor_col++;
   context->lines =
       realloc(context->lines, context->size * sizeof(*context->lines));
-
-  if (!context->lines) {
-    printf("Failed to realloc buffer-lines!\n");
-    exit(-1);
-  }
 }
 
 void buffer_prepare(buffer_context *context) {

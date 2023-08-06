@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -pedantic
+CFLAGS=-Wall -Wextra -pedantic -g
 LIBS=-lSDL2 -lSDL2_ttf -lm
 
 lightwrite: src/main.c
