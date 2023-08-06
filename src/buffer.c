@@ -40,14 +40,18 @@ void buffer_push_line(buffer_context *context) {
   assert(context->lines);
   context->size++;
   context->cursor_col++;
-  context->lines =
-      realloc(context->lines, context->size * sizeof(*context->lines));
+  context->lines = realloc(context->lines, context->size * sizeof(line));
+
+  // Zero-out the new fresh buffer
+  memset(context->lines[context->size - 1].buffer, 0, MAX_BUFFER_SIZE);
+  context->lines[context->size - 1].size = 0;
+  context->lines[context->size - 1].cursor = 0;
 }
 
 void buffer_prepare(buffer_context *context) {
   assert(context);
   context->size++;
-  context->lines = calloc(context->size, sizeof(*context->lines));
+  context->lines = calloc(context->size, sizeof(line));
 }
 
 void buffer_ins_cursor(buffer_context *context, const char *text) {

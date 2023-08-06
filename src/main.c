@@ -45,7 +45,8 @@ int main(void) {
     return -1;
   }
 
-  const SDL_Color f_colr = {255, 255, 255, 255};
+  const SDL_Color line_color = {255, 255, 255, 150};
+  const SDL_Color text_color = {255, 255, 255, 255};
   buffer_prepare(&context);
 
   bool closed = false;
@@ -90,18 +91,28 @@ int main(void) {
     SDL_RenderClear(renderer);
 
     font_data data;
+    font_data line_num;
     size_t i;
     for (i = 0; i < context.size; ++i) {
-      data = prepare_string(font, renderer, 0, i * data.font_h,
-                            context.lines[i].buffer, f_colr);
+      char line[MAX_BUFFER_SIZE];
+      sprintf(line, "%zu", (i + 1));
+      line_num =
+          prepare_string(font, renderer, 0, i * data.font_h, line, line_color);
+      SDL_RenderCopy(renderer, line_num.texture, NULL, &line_num.rect);
+      SDL_DestroyTexture(data.texture);
+
+      data =
+          prepare_string(font, renderer, line_num.font_w + 4, i * data.font_h,
+                         context.lines[i].buffer, text_color);
       SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
       SDL_DestroyTexture(data.texture);
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_Rect rect = {
-        .x = context.lines[context.size - 1].cursor *
-             (data.font_w / (float)context.lines[context.size - 1].size),
+        .x = line_num.font_w +
+             (context.lines[context.size - 1].cursor *
+              (data.font_w / (float)context.lines[context.size - 1].size)),
         .y = context.cursor_col * data.font_h,
         .w = 3,
         .h = data.font_h};
