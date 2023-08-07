@@ -79,13 +79,7 @@ int buffer_get_cursor_row(buffer_context *context) {
 }
 
 void buffer_free(buffer_context *context) {
-  if (context) {
-    if (context->lines) {
-      for (size_t i = 0; i < context->size; ++i) {
-        free(context->lines[i].buffer);
-      }
-      free(context->lines);
-    }
-    free(context);
+  if (context && context->lines) {
+    free(context->lines);
   }
 }
