@@ -5,6 +5,8 @@
 #include <SDL2/SDL_ttf.h>
 
 typedef struct s_font_data {
+  const char *text;
+
   SDL_Texture *texture;
   SDL_Rect rect;
 

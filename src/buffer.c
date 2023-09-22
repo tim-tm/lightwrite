@@ -39,7 +39,7 @@ void buffer_push_line(buffer_context *context) {
   assert(context);
   assert(context->lines);
   context->size++;
-  context->cursor_col++;
+  context->cursor++;
   context->lines = realloc(context->lines, context->size * sizeof(line));
 
   // Zero-out the new fresh buffer
@@ -50,6 +50,7 @@ void buffer_push_line(buffer_context *context) {
 
 void buffer_prepare(buffer_context *context) {
   assert(context);
+  context->cursor = 0;
   context->size++;
   context->lines = calloc(context->size, sizeof(line));
 }
@@ -57,25 +58,25 @@ void buffer_prepare(buffer_context *context) {
 void buffer_ins_cursor(buffer_context *context, const char *text) {
   assert(context);
   assert(context->lines);
-  line_ins_cursor(&context->lines[context->size - 1], text);
+  line_ins_cursor(&context->lines[context->cursor], text);
 }
 
 void buffer_del_cursor(buffer_context *context) {
   assert(context);
   assert(context->lines);
-  line_del_cursor(&context->lines[context->size - 1]);
+  line_del_cursor(&context->lines[context->cursor]);
 }
 
 void buffer_del(buffer_context *context) {
   assert(context);
   assert(context->lines);
-  line_del(&context->lines[context->size - 1]);
+  line_del(&context->lines[context->cursor]);
 }
 
-int buffer_get_cursor_row(buffer_context *context) {
+size_t buffer_get_cursor_row(buffer_context *context) {
   assert(context);
   assert(context->lines);
-  return context->lines[context->size - 1].cursor;
+  return context->lines[context->cursor].cursor;
 }
 
 void buffer_free(buffer_context *context) {

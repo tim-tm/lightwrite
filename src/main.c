@@ -49,6 +49,10 @@ int main(void) {
   const SDL_Color text_color = {255, 255, 255, 255};
   buffer_prepare(&context);
 
+  char *last_text;
+  int w;
+  int h;
+
   bool closed = false;
   while (!closed) {
     SDL_Event ev;
@@ -63,14 +67,28 @@ int main(void) {
           buffer_del_cursor(&context);
         } break;
         case SDLK_LEFT: {
-          if (context.lines[context.size - 1].cursor > 0) {
-            context.lines[context.size - 1].cursor--;
+          if (buffer_get_cursor_row(&context) > 0) {
+            context.lines[context.cursor].cursor--;
           }
         } break;
         case SDLK_RIGHT: {
-          if (context.lines[context.size - 1].cursor <
-              context.lines[context.size - 1].size) {
-            context.lines[context.size - 1].cursor++;
+          if (buffer_get_cursor_row(&context) <
+              context.lines[context.cursor].size) {
+            context.lines[context.cursor].cursor++;
+          }
+        } break;
+        case SDLK_UP: {
+          if (context.cursor > 0) {
+            context.cursor--;
+            context.lines[context.cursor].cursor =
+                context.lines[context.cursor].size;
+          }
+        } break;
+        case SDLK_DOWN: {
+          if (context.cursor < (context.size - 1)) {
+            context.cursor++;
+            context.lines[context.cursor].cursor =
+                context.lines[context.cursor].size;
           }
         } break;
         case SDLK_DELETE: {
@@ -91,15 +109,13 @@ int main(void) {
     SDL_RenderClear(renderer);
 
     font_data data;
-    font_data line_num;
-    size_t i;
-    for (i = 0; i < context.size; ++i) {
+    for (size_t i = 0; i < context.size; ++i) {
       char line[MAX_BUFFER_SIZE];
       sprintf(line, "%zu", (i + 1));
-      line_num =
+      font_data line_num =
           prepare_string(font, renderer, 0, i * data.font_h, line, line_color);
       SDL_RenderCopy(renderer, line_num.texture, NULL, &line_num.rect);
-      SDL_DestroyTexture(data.texture);
+      SDL_DestroyTexture(line_num.texture);
 
       data =
           prepare_string(font, renderer, line_num.font_w + 4, i * data.font_h,
@@ -108,15 +124,18 @@ int main(void) {
       SDL_DestroyTexture(data.texture);
     }
 
+    if (strcmp(last_text, context.lines[context.cursor].buffer) != 0) {
+      TTF_SizeText(font, context.lines[context.cursor].buffer, &w, &h);
+    }
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_Rect rect = {
-        .x = line_num.font_w +
-             (context.lines[context.size - 1].cursor *
-              (data.font_w / (float)context.lines[context.size - 1].size)),
-        .y = context.cursor_col * data.font_h,
-        .w = 3,
-        .h = data.font_h};
+    SDL_Rect rect = {.x =
+                         15 + (context.lines[context.cursor].cursor *
+                               (w / (float)context.lines[context.cursor].size)),
+                     .y = context.cursor * h,
+                     .w = 3,
+                     .h = h};
     SDL_RenderFillRect(renderer, &rect);
+    last_text = context.lines[context.cursor].buffer;
 
     SDL_RenderPresent(renderer);
   }

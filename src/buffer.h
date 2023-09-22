@@ -15,7 +15,7 @@ typedef struct s_line {
 typedef struct s_buffer_context {
   line *lines;
   size_t size;
-  size_t cursor_col;
+  size_t cursor;
 } buffer_context;
 
 void line_ins_cursor(line *lin, const char *text);
@@ -28,6 +28,6 @@ void buffer_ins_cursor(buffer_context *context, const char *text);
 void buffer_del_cursor(buffer_context *context);
 void buffer_del(buffer_context *context);
 void buffer_free(buffer_context *context);
-int buffer_get_cursor_row(buffer_context *context);
+size_t buffer_get_cursor_row(buffer_context *context);
 
 #endif // !BUFFER_H
