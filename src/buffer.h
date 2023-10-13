@@ -6,28 +6,28 @@
 #define MAX_LINE_SIZE 1024
 #define MAX_BUFFER_SIZE 1024
 
-typedef struct s_line {
-  char buffer[MAX_LINE_SIZE];
-  size_t size;
-  size_t cursor;
-} line;
+typedef struct _Line_ {
+	char buffer[MAX_LINE_SIZE];
+	size_t size;
+	size_t cursor;
+} Line;
 
-typedef struct s_buffer_context {
-  line *lines;
-  size_t size;
-  size_t cursor;
-} buffer_context;
+typedef struct _Buffer_Context_ {
+	Line *lines;
+	size_t size;
+	size_t cursor;
+} Buffer_Context;
 
-void line_ins_cursor(line *lin, const char *text);
-void line_del_cursor(line *lin);
-void line_del(line *lin);
+void line_ins_cursor(Line *line, const char *text);
+void line_del_cursor(Line *line);
+void line_del(Line *line);
 
-void buffer_push_line(buffer_context *context);
-void buffer_prepare(buffer_context *context);
-void buffer_ins_cursor(buffer_context *context, const char *text);
-void buffer_del_cursor(buffer_context *context);
-void buffer_del(buffer_context *context);
-void buffer_free(buffer_context *context);
-size_t buffer_get_cursor_row(buffer_context *context);
+void buffer_push_line(Buffer_Context *context);
+void buffer_prepare(Buffer_Context *context);
+void buffer_ins_cursor(Buffer_Context *context, const char *text);
+void buffer_del_cursor(Buffer_Context *context);
+void buffer_del(Buffer_Context *context);
+void buffer_free(Buffer_Context *context);
+size_t buffer_get_cursor_row(Buffer_Context *context);
 
 #endif // !BUFFER_H

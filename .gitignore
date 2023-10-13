@@ -1,2 +1,3 @@
 bin/lightwrite
 .cache
+.clang-format
