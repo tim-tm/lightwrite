@@ -1,4 +1,6 @@
 #include "buffer.h"
+
+// TODO: Implement an own simple logger and assertion tool, that also can print to files.
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,6 +38,19 @@ void line_del(Line *line) {
 	}
 }
 
+void buffer_init(Buffer_Context *context) {
+	assert(context);
+	context->cursor = 0;
+	context->size = 1;
+	context->lines = calloc(context->size, sizeof(Line));
+}
+
+void buffer_free(Buffer_Context *context) {
+	if (context && context->lines) {
+		free(context->lines);
+	}
+}
+
 void buffer_push_line(Buffer_Context *context) {
 	assert(context);
 	assert(context->lines);
@@ -47,13 +62,6 @@ void buffer_push_line(Buffer_Context *context) {
 	memset(context->lines[context->size - 1].buffer, 0, MAX_BUFFER_SIZE);
 	context->lines[context->size - 1].size = 0;
 	context->lines[context->size - 1].cursor = 0;
-}
-
-void buffer_prepare(Buffer_Context *context) {
-	assert(context);
-	context->cursor = 0;
-	context->size++;
-	context->lines = calloc(context->size, sizeof(Line));
 }
 
 void buffer_ins_cursor(Buffer_Context *context, const char *text) {
@@ -78,10 +86,4 @@ unsigned long buffer_get_cursor_row(Buffer_Context *context) {
 	assert(context);
 	assert(context->lines);
 	return context->lines[context->cursor].cursor;
-}
-
-void buffer_free(Buffer_Context *context) {
-	if (context && context->lines) {
-		free(context->lines);
-	}
 }

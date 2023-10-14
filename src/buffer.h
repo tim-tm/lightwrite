@@ -20,12 +20,13 @@ void line_ins_cursor(Line *line, const char *text);
 void line_del_cursor(Line *line);
 void line_del(Line *line);
 
+void buffer_init(Buffer_Context *context);
+void buffer_free(Buffer_Context *context);
+
 void buffer_push_line(Buffer_Context *context);
-void buffer_prepare(Buffer_Context *context);
 void buffer_ins_cursor(Buffer_Context *context, const char *text);
 void buffer_del_cursor(Buffer_Context *context);
 void buffer_del(Buffer_Context *context);
-void buffer_free(Buffer_Context *context);
 unsigned long buffer_get_cursor_row(Buffer_Context *context);
 
 #endif // !BUFFER_H
