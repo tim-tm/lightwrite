@@ -79,10 +79,7 @@ Currently this project requires at least GNU-Make version 4.4 since the Makefile
 You could also globally install each dependency, to be ready for compilation.
 Arch Linux example:
 ```sh
-sudo pacman -Syu sdl2
-```
-```sh
-sudo pacman -Syu sdl2_ttf
+sudo pacman -Syu sdl2 sdl2_ttf
 ```
 
 General setup.
