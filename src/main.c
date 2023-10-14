@@ -21,13 +21,33 @@ static SDL_Renderer* renderer;
 static TTF_Font* font;
 static Buffer_Context context;
 
+static FILE* fp;
+static bool ctrl_pressed;
+static char* filename = "";
+
 static bool init_all(void);
 static void destroy_all(void);
 static bool handle_events(void);
 
-int main(void) {
-	if (!init_all()) {
+int main(int argc, char** argv) {
+    if (argc > 2) {
+        printf("Usage: %s <file>\n", argv[0]);
         return -1;
+    }
+    
+    if (!init_all()) {
+        return -1;
+    }
+
+    if (argc == 2) {
+        // First read in the data
+        fp = fopen(argv[1], "r");
+        if (!fp) {
+            printf("Failed to open: %s", argv[1]);
+            return -1;
+        }
+        buffer_read(&context, fp);
+        filename = argv[1];
     }
 
     bool closed = false;
@@ -119,6 +139,7 @@ static void destroy_all(void) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 	SDL_Quit();
+    if (fp) fclose(fp);
 }
 
 static bool handle_events(void) {
@@ -164,6 +185,21 @@ static bool handle_events(void) {
             case SDLK_RETURN: {
                 buffer_push_line(&context);
             } break;
+            // TODO: Implement a better way of handling keybinds.
+            case SDLK_LCTRL: {
+                ctrl_pressed = true;
+            } break;
+            case SDLK_s: {
+                if (ctrl_pressed && fp) {
+                    buffer_write(&context, fp, filename);
+                    printf("File saved!\n");
+                }
+            } break;
+            }
+        } break;
+        case SDLK_UP: {
+            if (ev.key.keysym.sym == SDLK_LCTRL) {
+                ctrl_pressed = false;
             }
         } break;
         case SDL_TEXTINPUT: {

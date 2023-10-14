@@ -2,6 +2,7 @@
 
 // TODO: Implement an own simple logger and assertion tool, that also can print to files.
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -67,7 +68,9 @@ void buffer_push_line(Buffer_Context *context) {
 void buffer_ins_cursor(Buffer_Context *context, const char *text) {
 	assert(context);
 	assert(context->lines);
-	line_ins_cursor(&context->lines[context->cursor], text);
+
+    // TODO: Support \n, makes life much easier.
+    line_ins_cursor(&context->lines[context->cursor], text);
 }
 
 void buffer_del_cursor(Buffer_Context *context) {
@@ -86,4 +89,54 @@ unsigned long buffer_get_cursor_row(Buffer_Context *context) {
 	assert(context);
 	assert(context->lines);
 	return context->lines[context->cursor].cursor;
+}
+
+void buffer_read(Buffer_Context* context, FILE* file) {
+    assert(context);
+    assert(file);
+    
+    // Clear the buffer.
+    buffer_init(context);
+
+    char* line;
+    unsigned long length;
+
+    while (getline(&line, &length, file) != -1) {
+        unsigned int linelen = strlen(line);
+        if (linelen > MAX_BUFFER_SIZE) {
+            printf("Line ignored: %zu > %u", length, MAX_LINE_SIZE);
+            return;
+        }
+
+        line[linelen-1] = '\0';
+        buffer_ins_cursor(context, line);
+        buffer_push_line(context);
+    }
+}
+
+bool buffer_write(Buffer_Context* context, FILE* file, const char* filename) {
+    assert(context);
+    assert(file);
+
+    fclose(file);
+
+    // Open the file for writing
+    file = fopen(filename, "w+");
+    if (!file) {
+        printf("Failed to open: %s", filename);
+        return false;
+    }
+    
+    for (unsigned long i = 0; i < context->size; ++i) {
+        char* line = context->lines[i].buffer;
+        
+        if (i != context->size-1) {
+            line[context->lines[i].size] = '\n';
+        } else {
+            line[context->lines[i].size] = '\0';
+        }
+        
+        fprintf(file, "%s", line);
+    }
+    return true;
 }
