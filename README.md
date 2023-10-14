@@ -9,14 +9,14 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <h3 align="center">Breakout</h3>
+  <h3 align="center">lightwrite</h3>
 
   <p align="center">
     Little text editor written in C using SDL2.
     <br />
-    <a href="https://github.com/lightwrite/issues">Report Bug</a>
+    <a href="https://github.com/tim-tm/lightwrite/issues">Report Bug</a>
     ·
-    <a href="https://github.com/lightwrite/issues">Request Feature</a>
+    <a href="https://github.com/tim-tm/lightwrite/issues">Request Feature</a>
   </p>
 </div>
 
@@ -66,13 +66,13 @@ Here you can see how to setup this project locally.
 ### Prerequisites
 
 Since this project is mainly developed in Linux, Windows build is not yet supported.
-NOTE: Currently this project requires at least GNU-Make version 4.4 since the Makefile is using the .WAIT feature. I would suggest building Make from source, alternatively use a newer pre-built version , ![pacman](https://archlinux.org/pacman/) for example provides a newer version of make ![pacman-make](https://archlinux.org/packages/core/x86_64/make/).
+Currently this project requires at least GNU-Make version 4.4 since the Makefile is using the .WAIT feature. I would suggest building Make from source, alternatively use a newer pre-built version , [pacman](https://archlinux.org/pacman/) for example provides a newer version of make [pacman-make](https://archlinux.org/packages/core/x86_64/make/).
 
-* ![install and setup git](https://git-scm.com/book/en/v2)
-* ![gnu make](https://www.gnu.org/software/make/#download)
-* ![gnu compiler collection (gcc/g++)](https://gcc.gnu.org/)
-* ![SDL2](https://wiki.libsdl.org/SDL2/Installation)
-* ![SDL2_ttf](https://github.com/libsdl-org/SDL_ttf/releases)
+* [install and setup git](https://git-scm.com/book/en/v2)
+* [gnu make](https://www.gnu.org/software/make/#download)
+* [gnu compiler collection (gcc/g++)](https://gcc.gnu.org/)
+* [SDL2](https://wiki.libsdl.org/SDL2/Installation)
+* [SDL2_ttf](https://github.com/libsdl-org/SDL_ttf/releases)
 
 ### Installation
 
@@ -85,6 +85,7 @@ sudo pacman -Syu sdl2
 sudo pacman -Syu sdl2_ttf
 ```
 
+General setup.
 * clone the repo and move inside
   ```sh
   git clone git@github.com:tim-tm/lightwrite.git && cd breakout
@@ -124,6 +125,7 @@ Additionally, if you want to compile a release build without any debug features,
   ```
 
 Here you can see the folder structure of a built project.
+```sh
     .
     ├── build
     │   ├── release             # Results of a release compilation will be stored here.
@@ -138,6 +140,7 @@ Here you can see the folder structure of a built project.
     ├── Makefile
     ├── LICENSE
     └── README.md
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -167,15 +170,15 @@ SDL2 and SDL2_ttf are both distributed under the ![zlib license](https://www.zli
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/tim-tm/lightwrite.svg?style=for-the-badge
-[contributors-url]: https://github.com/lightwrite/graphs/contributors
+[contributors-url]: https://github.com/tim-tm/lightwrite/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/tim-tm/lightwrite.svg?style=for-the-badge
-[forks-url]: https://github.com/lightwrite/network/members
+[forks-url]: https://github.com/tim-tm/lightwrite/network/members
 [stars-shield]: https://img.shields.io/github/stars/tim-tm/lightwrite.svg?style=for-the-badge
-[stars-url]: https://github.com/lightwrite/stargazers
+[stars-url]: https://github.com/tim-tm/lightwrite/stargazers
 [issues-shield]: https://img.shields.io/github/issues/tim-tm/lightwrite.svg?style=for-the-badge
-[issues-url]: https://github.com/lightwrite/issues
+[issues-url]: https://github.com/tim-tm/lightwrite/issues
 [license-shield]: https://img.shields.io/github/license/tim-tm/lightwrite.svg?style=for-the-badge
-[license-url]: https://github.com/lightwrite/blob/main/LICENSE
+[license-url]: https://github.com/tim-tm/lightwrite/blob/main/LICENSE
 [SDL]: https://img.shields.io/badge/SDL-35495E?style=for-the-badge&logo=&logoColor=4FC08D
 [SDL-url]: https://www.libsdl.org/
 [SDL_ttf]: https://img.shields.io/badge/SDL_ttf-35495E?style=for-the-badge&logo=&logoColor=4FC08D
