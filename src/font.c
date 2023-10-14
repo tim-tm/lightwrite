@@ -1,4 +1,4 @@
-#include "./font.h"
+#include "font.h"
 #include <string.h>
 
 static Font_Data last_data = {

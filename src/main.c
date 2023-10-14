@@ -12,6 +12,7 @@ static Buffer_Context context;
 
 static const int screen_width = 800;
 static const int screen_height = 600;
+static const char font_path[] = "resource/MonoLisaRegular.ttf";
 
 int main(void) {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -39,7 +40,7 @@ int main(void) {
 		return -1;
 	}
 
-	TTF_Font *font = TTF_OpenFont("MonoLisaRegular.ttf", 16);
+	TTF_Font *font = TTF_OpenFont(font_path, 16);
 	if (!font) {
 		printf("TTF-Error: %s\n", TTF_GetError());
 		return -1;
@@ -103,16 +104,16 @@ int main(void) {
 				buffer_ins_cursor(&context, ev.text.text);
 			}
 			}
-			break;
+		    break;
 		}
 		SDL_SetRenderDrawColor(renderer, 35, 35, 35, 0);
 		SDL_RenderClear(renderer);
 
-		font_data data;
+		Font_Data data;
 		for (size_t i = 0; i < context.size; ++i) {
 			char line[MAX_BUFFER_SIZE];
 			sprintf(line, "%zu", (i + 1));
-			font_data line_num = prepare_string(
+			Font_Data line_num = prepare_string(
 			    font, renderer, 0, i * data.font_h, line, line_color);
 			SDL_RenderCopy(renderer, line_num.texture, NULL, &line_num.rect);
 			SDL_DestroyTexture(line_num.texture);

@@ -1,14 +1,42 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -pedantic
+CFLAGS=-Wall -Wextra -pedantic -g
+INCLUDES=
 LIBS=-lSDL2 -lSDL2_ttf
 
-# TODO: Create SRC and OBJ variables that can be iterated for faster build with multiple threads.
+SRCDIR=src
+BUILDDIR=build
+RELEASEDIR=build/release
 
-lightwrite: src/main.c
-	$(CC) $(CFLAGS) -o bin/lightwrite src/main.c src/buffer.c src/font.c $(LIBS)
+ifeq ($(BUILD_TYPE), RELEASE)
+CFLAGS=-Wall -Wextra -pedantic
+BUILDDIR=$(RELEASEDIR)
+endif
 
-debug: src/main.c
-	$(CC) $(CFLAGS) -g -o bin/lightwrite src/main.c src/buffer.c src/font.c $(LIBS)
+SRC=$(wildcard $(SRCDIR)/*.c)
+OBJ=$(patsubst $(SRCDIR)/%.c, $(BUILDDIR)/%.o, $(SRC))
+
+BINARY=$(BUILDDIR)/lightwrite
+
+.PHONY: all setup clean rebuild destroy
+
+all: $(BINARY)
+
+$(BINARY): $(BUILDDIR)/$(OBJ)
+	$(CC) $(CFLAGS) $(INCLUDES) $(OBJ) -o $(BINARY) $(LIBS)
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+setup:
+	mkdir -p $(RELEASEDIR)
+	cp -rf resource $(BUILDDIR)
+	cp -rf resource $(RELEASEDIR)
 
 clean:
-	rm bin/lightwrite
+	rm -rf $(BINARY)
+	rm -rf $(OBJ)
+
+rebuild: .WAIT destroy .WAIT setup all
+
+destroy:
+	rm -rf $(BUILDDIR)

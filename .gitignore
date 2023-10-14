@@ -1,3 +1,3 @@
-bin/lightwrite
+build/
 .cache
 .clang-format

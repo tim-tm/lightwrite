@@ -1,7 +1,8 @@
-#include "./buffer.h"
+#include "buffer.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 void line_ins_cursor(Line *line, const char *text) {
 	size_t in_len = strlen(text);
@@ -73,7 +74,7 @@ void buffer_del(Buffer_Context *context) {
 	line_del(&context->lines[context->cursor]);
 }
 
-size_t buffer_get_cursor_row(Buffer_Context *context) {
+unsigned long buffer_get_cursor_row(Buffer_Context *context) {
 	assert(context);
 	assert(context->lines);
 	return context->lines[context->cursor].cursor;
