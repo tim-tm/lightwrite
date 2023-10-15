@@ -14,8 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const int screen_width = 800;
-static const int screen_height = 600;
+static int screen_width = 800;
+static int screen_height = 600;
 static const char font_path[] = "resource/MonoLisaRegular.ttf";
 static const SDL_Color text_color = {255, 255, 255, 255};
 
@@ -27,6 +27,7 @@ static Buffer_Context context;
 static FILE* fp;
 static char* filename;
 static bool choosing_filename;
+static bool file_saved;
 
 static bool init_all(void);
 static void destroy_all(void);
@@ -56,11 +57,16 @@ int main(int argc, char** argv) {
     }
 
     // Moving some variable decls up here for performance reasons.
-    char substr[MAX_LINE_SIZE];
-    int width;
-    int height;
+    int width; // used for font-width
+    int height; // used for font-height
+    
     Font_Data data;
     SDL_Rect rect;
+    
+    char substr[MAX_LINE_SIZE];
+    
+    char name[1024] = "<untitled>";
+    int status_height = 18;
 
     bool closed = false;
 	while (!closed) {
@@ -69,13 +75,38 @@ int main(int argc, char** argv) {
         SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
 		SDL_RenderClear(renderer);
 
+        rect.x = 0;
+        rect.y = 0;
+        rect.w = screen_width;
+        rect.h = status_height;
+        SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
+        SDL_RenderFillRect(renderer, &rect);
+        
+        if (filename) {
+            strcpy(name, filename);
+        }
+
+        data = prepare_string(font, renderer, 1, 1, name, text_color);
+        SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
+        SDL_DestroyTexture(data.texture);   
+
+        if (!file_saved) {
+            TTF_SizeText(font, name, &width, &height);
+            
+            SDL_RenderSetScale(renderer, 0.9f, 0.9f);
+            data = prepare_string(font, renderer, (2 + width) * 1.1f, 2, "*", text_color);
+            SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
+            SDL_DestroyTexture(data.texture);   
+            SDL_RenderSetScale(renderer, 1.f, 1.f);
+        }
+
 		for (size_t i = 0; i < context.size; ++i) {
             TTF_SizeText(font, context.lines[i].buffer, &width, &height);
 
             data = prepare_string(font, renderer, 0,
-			    i * data.font_h, context.lines[i].buffer, text_color);
+			    status_height + (i * data.font_h), context.lines[i].buffer, text_color);
             SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
-			SDL_DestroyTexture(data.texture);   
+            SDL_DestroyTexture(data.texture);   
 		}
         
         // Getting the string written from the left of the screen until the cursor.
@@ -91,7 +122,7 @@ int main(int argc, char** argv) {
 
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		rect.x = width;
-		rect.y = context.cursor * height;
+		rect.y = status_height + (context.cursor * height);
 		rect.w = 3;
 		rect.h = height;
 		SDL_RenderFillRect(renderer, &rect);
@@ -109,7 +140,7 @@ int main(int argc, char** argv) {
 
             data = prepare_string(font, renderer, screen_width / 2 - width / 2, screen_height / 2 - height / 2, filename, text_color);
             SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
-            SDL_DestroyTexture(data.texture);
+            SDL_DestroyTexture(data.texture);   
         }
 		
         SDL_RenderPresent(renderer);
@@ -236,6 +267,7 @@ static bool handle_events(void) {
                     buffer_write(&context, fp, filename);
                     LOG_INFO("%s saved!", filename);
                     choosing_filename = false;
+                    file_saved = true;
                 } else {
                     buffer_push_line(&context);
                 }
@@ -246,6 +278,7 @@ static bool handle_events(void) {
                     if (filename) {
                         buffer_write(&context, fp, filename);
                         LOG_INFO("%s saved!", filename);
+                        file_saved = true;
                     } else {
                         filename = "Choose a filename!";
                         choosing_filename = true;
@@ -265,8 +298,16 @@ static bool handle_events(void) {
                 strncat(filename, ev.text.text, 1024);
             } else {
                 buffer_ins_cursor(&context, ev.text.text);
+                file_saved = false;
             }
-        }
+        } break;
+        case SDL_WINDOWEVENT: {
+            if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && renderer) {
+                screen_width = ev.window.data1;
+                screen_height = ev.window.data2;
+                SDL_RenderSetLogicalSize(renderer, screen_width, screen_height);
+            }
+        } break;
         }
         break;
     }
