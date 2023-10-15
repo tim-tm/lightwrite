@@ -1,5 +1,6 @@
 #include "buffer.h"
 #include "font.h"
+#include "keybinds.h"
 #include "logger.h"
 
 #include <SDL2/SDL.h>
@@ -24,8 +25,8 @@ static TTF_Font* font;
 static Buffer_Context context;
 
 static FILE* fp;
-static bool ctrl_pressed;
 static char* filename;
+static bool choosing_filename;
 
 static bool init_all(void);
 static void destroy_all(void);
@@ -54,37 +55,64 @@ int main(int argc, char** argv) {
         }
     }
 
+    // Moving some variable decls up here for performance reasons.
+    char substr[MAX_LINE_SIZE];
+    int width;
+    int height;
+    Font_Data data;
+    SDL_Rect rect;
+
     bool closed = false;
 	while (!closed) {
 		closed = handle_events();
         
-        SDL_SetRenderDrawColor(renderer, 35, 35, 35, 0);
+        SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
 		SDL_RenderClear(renderer);
 
 		for (size_t i = 0; i < context.size; ++i) {
-			Font_Data data = prepare_string(font, renderer, 0,
-			    i * data.font_h, context.lines[i].buffer, text_color);
-			SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
-			SDL_DestroyTexture(data.texture);
-		}
+            TTF_SizeText(font, context.lines[i].buffer, &width, &height);
 
+            data = prepare_string(font, renderer, 0,
+			    i * data.font_h, context.lines[i].buffer, text_color);
+            SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
+			SDL_DestroyTexture(data.texture);   
+		}
+        
         // Getting the string written from the left of the screen until the cursor.
-        char substr[MAX_LINE_SIZE];
         memset(substr, 0, sizeof(substr));
         strncpy(substr, context.lines[context.cursor].buffer, context.lines[context.cursor].cursor);
-        
-        int width;
-        int height;
+
+        if (width >= screen_width) {
+            // TODO: Manage writing further than the screen_width
+            width = screen_width - 3;
+        }
+
         TTF_SizeText(font, substr, &width, &height);
 
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_Rect rect = {
-		    .x = width,
-		    .y = context.cursor * height,
-		    .w = 3,
-		    .h = height};
+		rect.x = width;
+		rect.y = context.cursor * height;
+		rect.w = 3;
+		rect.h = height;
 		SDL_RenderFillRect(renderer, &rect);
-		SDL_RenderPresent(renderer);
+        
+        if (choosing_filename) {
+            TTF_SizeText(font, filename, &width, &height);
+
+            rect.x = screen_width / 2 - width / 2 - 5;
+            rect.y = screen_height / 2 - height / 2 - 2;
+            rect.w = width + 10;
+            rect.h = height + 4;
+            
+            SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
+            SDL_RenderFillRect(renderer, &rect);
+
+            data = prepare_string(font, renderer, screen_width / 2 - width / 2, screen_height / 2 - height / 2, filename, text_color);
+            SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
+            SDL_DestroyTexture(data.texture);
+        }
+		
+        SDL_RenderPresent(renderer);
 	}
 	destroy_all();
     return 0;
@@ -133,10 +161,14 @@ static bool init_all(void) {
 	}
 
 	buffer_init(&context);
+    if (!logger_init()) return false;
+    if (!keybinds_init()) return false;
     return true;
 }
 
 static void destroy_all(void) {
+    keybinds_destroy();
+    logger_destroy();
 	buffer_free(&context);
 	TTF_CloseFont(font);
 	TTF_Quit();
@@ -155,9 +187,21 @@ static bool handle_events(void) {
             return true;
         } break;
         case SDL_KEYDOWN: {
+            keybinds_on_down(ev.key.keysym.sym);
+
             switch (ev.key.keysym.sym) {
             case SDLK_BACKSPACE: {
-                buffer_del_cursor(&context);
+                if (choosing_filename) {
+                    int len = strlen(filename);
+                    if (len <= 1) {
+                        filename = NULL;
+                        choosing_filename = false;
+                    }
+                    // Not that elegant but filename will be set to NULL if the strlen is <= 1
+                    if (filename) filename[len-1] = '\0';
+                } else {
+                    buffer_del_cursor(&context);
+                }
             } break;
             case SDLK_LEFT: {
                 if (buffer_get_cursor_row(&context) > 0) {
@@ -188,28 +232,40 @@ static bool handle_events(void) {
                 buffer_del(&context);
             } break;
             case SDLK_RETURN: {
-                buffer_push_line(&context);
-            } break;
-            // TODO: Implement a better way of handling keybinds.
-            case SDLK_LCTRL: {
-                ctrl_pressed = true;
+                if (choosing_filename) {
+                    buffer_write(&context, fp, filename);
+                    LOG_INFO("%s saved!", filename);
+                    choosing_filename = false;
+                } else {
+                    buffer_push_line(&context);
+                }
             } break;
             case SDLK_s: {
                 // do not check for file*, buffer_write will create the class anyways.
-                if (ctrl_pressed && filename) {
-                    buffer_write(&context, fp, filename);
-                    LOG_INFO("File saved!");
+                if (keybinds_is_down(SDLK_LCTRL)) {
+                    if (filename) {
+                        buffer_write(&context, fp, filename);
+                        LOG_INFO("%s saved!", filename);
+                    } else {
+                        filename = "Choose a filename!";
+                        choosing_filename = true;
+                    }
                 }
             } break;
             }
         } break;
-        case SDLK_UP: {
-            if (ev.key.keysym.sym == SDLK_LCTRL) {
-                ctrl_pressed = false;
-            }
+        case SDL_KEYUP: {
+            keybinds_on_up(ev.key.keysym.sym);
         } break;
         case SDL_TEXTINPUT: {
-            buffer_ins_cursor(&context, ev.text.text);
+            if (choosing_filename) {
+                if (!strcmp(filename, "Choose a filename!")) {
+                    filename = calloc(1024, sizeof(char));
+                }
+                strncat(filename, ev.text.text, 1024);
+            } else {
+                buffer_ins_cursor(&context, ev.text.text);
+            }
         }
         }
         break;
