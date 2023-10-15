@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -pedantic -g
+DEFINES=-D_DEBUG
 INCLUDES=
 LIBS=-lSDL2 -lSDL2_ttf
 
@@ -10,6 +11,7 @@ RELEASEDIR=build/release
 ifeq ($(BUILD_TYPE), RELEASE)
 CFLAGS=-Wall -Wextra -pedantic
 BUILDDIR=$(RELEASEDIR)
+DEFINES=
 endif
 
 SRC=$(wildcard $(SRCDIR)/*.c)
@@ -25,7 +27,7 @@ $(BINARY): $(BUILDDIR)/$(OBJ)
 	$(CC) $(CFLAGS) $(INCLUDES) $(OBJ) -o $(BINARY) $(LIBS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
 setup:
 	mkdir -p $(RELEASEDIR)

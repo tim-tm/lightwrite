@@ -1,7 +1,6 @@
 #include "buffer.h"
+#include "lassert.h"
 
-// TODO: Implement an own simple logger and assertion tool, that also can print to files.
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +21,7 @@ void line_ins_cursor(Line *line, const char *text) {
 }
 
 void line_del_cursor(Line *line) {
-	if (line->cursor > 0 && line->size > 0) {
+    if (line->cursor > 0 && line->size > 0) {
 		memmove(line->buffer + line->cursor - 1, line->buffer + line->cursor,
 		    line->size - line->cursor);
 		line->size--;
@@ -40,7 +39,7 @@ void line_del(Line *line) {
 }
 
 void buffer_init(Buffer_Context *context) {
-	assert(context);
+	LASSERT(context);
 	context->cursor = 0;
 	context->size = 1;
 	context->lines = calloc(context->size, sizeof(Line));
@@ -53,8 +52,8 @@ void buffer_free(Buffer_Context *context) {
 }
 
 void buffer_push_line(Buffer_Context *context) {
-	assert(context);
-	assert(context->lines);
+	LASSERT(context);
+	LASSERT(context->lines);
 	context->size++;
 	context->cursor++;
 	context->lines = realloc(context->lines, context->size * sizeof(Line));
@@ -66,34 +65,33 @@ void buffer_push_line(Buffer_Context *context) {
 }
 
 void buffer_ins_cursor(Buffer_Context *context, const char *text) {
-	assert(context);
-	assert(context->lines);
+	LASSERT(context);
+	LASSERT(context->lines);
 
-    // TODO: Support \n, makes life much easier.
     line_ins_cursor(&context->lines[context->cursor], text);
 }
 
 void buffer_del_cursor(Buffer_Context *context) {
-	assert(context);
-	assert(context->lines);
+	LASSERT(context);
+	LASSERT(context->lines);
 	line_del_cursor(&context->lines[context->cursor]);
 }
 
 void buffer_del(Buffer_Context *context) {
-	assert(context);
-	assert(context->lines);
+	LASSERT(context);
+	LASSERT(context->lines);
 	line_del(&context->lines[context->cursor]);
 }
 
 unsigned long buffer_get_cursor_row(Buffer_Context *context) {
-	assert(context);
-	assert(context->lines);
+	LASSERT(context);
+	LASSERT(context->lines);
 	return context->lines[context->cursor].cursor;
 }
 
 void buffer_read(Buffer_Context* context, FILE* file) {
-    assert(context);
-    assert(file);
+    LASSERT(context);
+    LASSERT(file);
     
     // Clear the buffer.
     buffer_init(context);
@@ -104,7 +102,7 @@ void buffer_read(Buffer_Context* context, FILE* file) {
     while (getline(&line, &length, file) != -1) {
         unsigned int linelen = strlen(line);
         if (linelen > MAX_BUFFER_SIZE) {
-            printf("Line ignored: %zu > %u", length, MAX_LINE_SIZE);
+            printf("Line ignored: %zu > %u\n", length, MAX_LINE_SIZE);
             return;
         }
 
@@ -115,15 +113,16 @@ void buffer_read(Buffer_Context* context, FILE* file) {
 }
 
 bool buffer_write(Buffer_Context* context, FILE* file, const char* filename) {
-    assert(context);
-    assert(file);
+    LASSERT(context);
 
-    fclose(file);
+    // closing unopened files will seg-fault
+    if (file) fclose(file);
 
-    // Open the file for writing
+    // Open the file for writing (and create it if it doesn't already exist)
     file = fopen(filename, "w+");
+    // Check for errors anyways, since it may want to create a file in write-protected area or any other error may occour.
     if (!file) {
-        printf("Failed to open: %s", filename);
+        printf("Failed to open/create: %s\n", filename);
         return false;
     }
     

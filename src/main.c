@@ -1,10 +1,12 @@
 #include "buffer.h"
 #include "font.h"
+#include "logger.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_video.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -23,7 +25,7 @@ static Buffer_Context context;
 
 static FILE* fp;
 static bool ctrl_pressed;
-static char* filename = "";
+static char* filename;
 
 static bool init_all(void);
 static void destroy_all(void);
@@ -31,7 +33,7 @@ static bool handle_events(void);
 
 int main(int argc, char** argv) {
     if (argc > 2) {
-        printf("Usage: %s <file>\n", argv[0]);
+        LOG_FATAL("Usage: %s <file>", argv[0]);
         return -1;
     }
     
@@ -39,15 +41,17 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    if (argc == 2) {
+    // Check the len, just to be sure.
+    if (argc == 2 && strlen(argv[1]) > 0) {
+        filename = calloc(1024, sizeof(char));
+        strcpy(filename, argv[1]);
+        
         // First read in the data
         fp = fopen(argv[1], "r");
-        if (!fp) {
-            printf("Failed to open: %s", argv[1]);
-            return -1;
+        // buffer_write will automatically create the file anyways.
+        if (fp) {
+            buffer_read(&context, fp);
         }
-        buffer_read(&context, fp);
-        filename = argv[1];
     }
 
     bool closed = false;
@@ -88,13 +92,13 @@ int main(int argc, char** argv) {
 
 static bool init_all(void) {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		printf("SDL-Error: %s\n", SDL_GetError());
+		LOG_FATAL("SDL-Error: %s", SDL_GetError());
 		return false;
 	}
 
 	if (TTF_Init() < 0) {
 		SDL_Quit();
-        printf("TTF-Error: %s\n", TTF_GetError());
+        LOG_FATAL("TTF-Error: %s", TTF_GetError());
 		return false;
 	}
 
@@ -104,7 +108,7 @@ static bool init_all(void) {
 	if (!window) {
         SDL_Quit();
         TTF_Quit();
-		printf("SDL-Error: %s\n", SDL_GetError());
+		LOG_FATAL("SDL-Error: %s", SDL_GetError());
 		return false;
 	}
 
@@ -114,7 +118,7 @@ static bool init_all(void) {
         SDL_Quit();
         TTF_Quit();
 		SDL_DestroyWindow(window);
-        printf("SDL-Error: %s\n", SDL_GetError());
+        LOG_FATAL("SDL-Error: %s", SDL_GetError());
 		return false;
 	}
 
@@ -124,7 +128,7 @@ static bool init_all(void) {
         TTF_Quit();
 		SDL_DestroyWindow(window);
 		SDL_DestroyRenderer(renderer);
-        printf("TTF-Error: %s\n", TTF_GetError());
+        LOG_FATAL("TTF-Error: %s", TTF_GetError());
 		return false;
 	}
 
@@ -140,6 +144,7 @@ static void destroy_all(void) {
     SDL_DestroyWindow(window);
 	SDL_Quit();
     if (fp) fclose(fp);
+    if (filename) free(filename);
 }
 
 static bool handle_events(void) {
@@ -190,9 +195,10 @@ static bool handle_events(void) {
                 ctrl_pressed = true;
             } break;
             case SDLK_s: {
-                if (ctrl_pressed && fp) {
+                // do not check for file*, buffer_write will create the class anyways.
+                if (ctrl_pressed && filename) {
                     buffer_write(&context, fp, filename);
-                    printf("File saved!\n");
+                    LOG_INFO("File saved!");
                 }
             } break;
             }
