@@ -45,6 +45,10 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
+### NOTE: Do not rely on the codebase, this is a beginner project made for education, things may and will heavily change.
+
+This is a really simple GUI-based text editor, which is based on the dramatic editor [ded](https://github.com/tsoding/ded), developed by [tsoding](https://github.com/tsoding), a twitch streamer known for recreational programming. As of right now, lightwrite is using his approach of handling file-content. Even though the code for managing files is not exactly the same, lightwrite will at least use the same datastructures.
+
 * Written in plain C.
 * lightweight (as the name implies)
 * simple codebase (only GNU-Make as a build tool since CMake would be unnecessary)
@@ -160,7 +164,7 @@ If you have a suggestion that would make this better, please fork the repo and c
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-SDL2 and SDL2_ttf are both distributed under the ![zlib license](https://www.zlib.net/zlib_license.html).
+SDL2 and SDL2_ttf are both distributed under the [zlib license](https://www.zlib.net/zlib_license.html).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -99,6 +99,7 @@ void buffer_read(Buffer_Context* context, FILE* file) {
     char* line;
     unsigned long length;
 
+    // NOTE: getline is only avalible for systems on _POSIX_C_SOURCE >= 200809L
     while (getline(&line, &length, file) != -1) {
         unsigned int linelen = strlen(line);
         if (linelen > MAX_BUFFER_SIZE) {

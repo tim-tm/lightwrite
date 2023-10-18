@@ -1,12 +1,14 @@
+#if defined (_WIN32) || defined (WIN32)
+#error "lightwrite can not yet be compiled for any version of windows."
+#endif /* if windows */
+
 #include "buffer.h"
 #include "font.h"
 #include "keybinds.h"
 #include "logger.h"
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_render.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_video.h>
 
 #include <stdbool.h>
 #include <stddef.h>
