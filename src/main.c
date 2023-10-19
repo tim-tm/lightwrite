@@ -1,4 +1,3 @@
-#include "filemanager.h"
 #if defined (_WIN32) || defined (WIN32)
 #error "lightwrite can not yet be compiled for any version of windows."
 #endif /* if windows */
@@ -7,6 +6,7 @@
 #include "font.h"
 #include "keybinds.h"
 #include "logger.h"
+#include "filemanager.h"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -27,11 +27,9 @@ static SDL_Renderer* renderer;
 static TTF_Font* font;
 static Buffer_Context context;
 
-static FILE* fp;
 static char* filename;
 static bool choosing_filename;
 static bool file_saved;
-static bool fp_no_free;
 
 static File_Manager file_man;
 static bool file_man_opened;
@@ -57,8 +55,9 @@ int main(int argc, char** argv) {
         strcpy(filename, argv[1]);
         
         // First read in the data
-        fp = fopen(argv[1], "r");
+        FILE* fp = fopen(argv[1], "r");
         // buffer_write will automatically create the file anyways.
+        fileman_push(&file_man, fp, filename);
         if (fp) {
             buffer_read(&context, fp);
         }
@@ -255,9 +254,6 @@ static void destroy_all(void) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 	SDL_Quit();
-    // TODO: Fix double free (again)
-    if (fp && !fp_no_free) fclose(fp);
-    if (filename) free(filename);
 }
 
 static bool handle_events(void) {
@@ -331,28 +327,19 @@ static bool handle_events(void) {
                     if (choosing_filename) {
                         fileman_create(&file_man, filename);
                         choosing_filename = false;
-                    } else {
-                        if (file_man.files[file_man_cursor].ptr) {
-                            buffer_read(&context, file_man.files[file_man_cursor].ptr);
-                            fp = file_man.files[file_man_cursor].ptr;
-                            filename = file_man.files[file_man_cursor].name;
-                            file_man_opened = false;
-                        }
+                    } else if (file_man.files[file_man_cursor].ptr) {
+                        LOG_DEBUG("Trying to open: %s", file_man.files[file_man_cursor].name);
+                        buffer_read(&context, file_man.files[file_man_cursor].ptr);
+                        filename = file_man.files[file_man_cursor].name;
+                        file_man_opened = false;
                     }
 
                     continue;
                 }
 
                 if (choosing_filename) {
-                    for (size_t i = 0; i <= file_man.size; ++i) {
-                        if (!strcmp(file_man.files[i].name, filename)) {
-                            LOG_DEBUG("Using %s's ptr from filemanager!", filename);
-                            fp = file_man.files[i].ptr;
-                            fp_no_free = true;
-                        }
-                    }
-                
-                    buffer_write(&context, fp, filename);
+                    LOG_DEBUG("Trying to save %s", file_man.files[0].name);
+                    buffer_write(&context, file_man.files[0].ptr, filename);
                     LOG_INFO("%s saved!", filename);
                     choosing_filename = false;
                     file_saved = true;
@@ -364,7 +351,8 @@ static bool handle_events(void) {
                 // do not check for file*, buffer_write will create the class anyways.
                 if (keybinds_is_down(SDLK_LCTRL)) {
                     if (filename) {
-                        buffer_write(&context, fp, filename);
+                        LOG_DEBUG("Trying to save %s", file_man.files[0].name);
+                        buffer_write(&context, file_man.files[0].ptr, filename);
                         LOG_INFO("%s saved!", filename);
                         file_saved = true;
                     } else {
@@ -377,18 +365,15 @@ static bool handle_events(void) {
                 // Filemanager keybind: Ctrl + Shift + f
                 if (keybinds_is_down(SDLK_LCTRL) && keybinds_is_down(SDLK_LSHIFT)) {
                     file_man_opened = !file_man_opened;
+                    filename = NULL;
                 }
             } break;
             case SDLK_a: {
                 // File creation keybind: a (in Filemanager)
-                if (file_man_opened) {
-                    if (filename) {
-                        fileman_create(&file_man, filename);
-                        LOG_INFO("%s created!", filename);
-                    } else {
-                        filename = "Choose a filename!";
-                        choosing_filename = true;
-                    }
+                if (file_man_opened && !choosing_filename) {
+                    filename = "Choose a filename!";
+                    choosing_filename = true;
+                    continue;
                 }
             } break;
             }
