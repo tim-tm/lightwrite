@@ -42,7 +42,8 @@ void buffer_init(Buffer_Context *context) {
 	LASSERT(context);
 	context->cursor = 0;
 	context->size = 1;
-	context->lines = calloc(context->size, sizeof(Line));
+    context->capacity = BUFFER_DEFAULT_CAPACITY;
+	context->lines = calloc(context->capacity, sizeof(Line));
 }
 
 void buffer_free(Buffer_Context *context) {
@@ -56,7 +57,11 @@ void buffer_push_line(Buffer_Context *context) {
 	LASSERT(context->lines);
 	context->size++;
 	context->cursor++;
-	context->lines = realloc(context->lines, context->size * sizeof(Line));
+
+    if (context->size >= context->capacity) {
+	    context->capacity = context->capacity == 0 ? BUFFER_DEFAULT_CAPACITY : context->capacity * 2;
+        context->lines = realloc(context->lines, context->capacity * sizeof(Line));
+    }
 
 	// Zero-out the new fresh buffer
 	memset(context->lines[context->size - 1].buffer, 0, MAX_BUFFER_SIZE);
@@ -83,7 +88,7 @@ void buffer_del(Buffer_Context *context) {
 	line_del(&context->lines[context->cursor]);
 }
 
-unsigned long buffer_get_cursor_row(Buffer_Context *context) {
+size_t buffer_get_cursor_row(Buffer_Context *context) {
 	LASSERT(context);
 	LASSERT(context->lines);
 	return context->lines[context->cursor].cursor;
@@ -97,9 +102,10 @@ void buffer_read(Buffer_Context* context, FILE* file) {
     buffer_init(context);
 
     char* line;
-    unsigned long length;
+    size_t length;
 
     // NOTE: getline is only avalible for systems on _POSIX_C_SOURCE >= 200809L
+    // FIXME: This segfaults if the file is a binary file, check for that!!
     while (getline(&line, &length, file) != -1) {
         unsigned int linelen = strlen(line);
         if (linelen > MAX_BUFFER_SIZE) {
@@ -117,7 +123,9 @@ bool buffer_write(Buffer_Context* context, FILE* file, const char* filename) {
     LASSERT(context);
 
     // closing unopened files will seg-fault
-    if (file) fclose(file);
+    if (file) {
+        fclose(file);
+    }
 
     // Open the file for writing (and create it if it doesn't already exist)
     file = fopen(filename, "w+");
@@ -127,7 +135,7 @@ bool buffer_write(Buffer_Context* context, FILE* file, const char* filename) {
         return false;
     }
     
-    for (unsigned long i = 0; i < context->size; ++i) {
+    for (size_t i = 0; i < context->size; ++i) {
         char* line = context->lines[i].buffer;
         
         if (i != context->size-1) {

@@ -4,7 +4,8 @@
 #include <SDL2/SDL_keycode.h>
 
 static Keybind keybinds[] = {
-    {SDLK_LCTRL, false}
+    {SDLK_LCTRL, false},
+    {SDLK_LSHIFT, false}
 };
 static const unsigned int keybinds_len = sizeof(keybinds) / sizeof(keybinds[0]);
 

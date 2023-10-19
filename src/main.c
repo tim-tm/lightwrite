@@ -1,3 +1,4 @@
+#include "filemanager.h"
 #if defined (_WIN32) || defined (WIN32)
 #error "lightwrite can not yet be compiled for any version of windows."
 #endif /* if windows */
@@ -30,6 +31,11 @@ static FILE* fp;
 static char* filename;
 static bool choosing_filename;
 static bool file_saved;
+static bool fp_no_free;
+
+static File_Manager file_man;
+static bool file_man_opened;
+static size_t file_man_cursor;
 
 static bool init_all(void);
 static void destroy_all(void);
@@ -76,6 +82,45 @@ int main(int argc, char** argv) {
         
         SDL_SetRenderDrawColor(renderer, 35, 35, 35, 255);
 		SDL_RenderClear(renderer);
+
+        if (file_man_opened) {
+            rect.x = 0;
+            rect.y = file_man_cursor * data.font_h;
+            rect.w = screen_width;
+            rect.h = data.font_h +1;
+            SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
+            SDL_RenderFillRect(renderer, &rect);
+            
+            for (size_t i = 0; i <= file_man.size; ++i) {
+                File f = file_man.files[i];
+                if (!f.ptr) continue;
+
+                data = prepare_string(font, renderer, 0,
+                    i * data.font_h, f.name, text_color);
+                SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
+                SDL_DestroyTexture(data.texture);
+            }
+            
+            if (choosing_filename) {
+                TTF_SizeText(font, filename, &width, &height);
+
+                rect.x = screen_width / 2 - width / 2 - 5;
+                rect.y = screen_height / 2 - height / 2 - 2;
+                rect.w = width + 10;
+                rect.h = height + 4;
+                
+                SDL_SetRenderDrawColor(renderer, 15, 15, 15, 255);
+                SDL_RenderFillRect(renderer, &rect);
+
+                data = prepare_string(font, renderer, screen_width / 2 - width / 2, screen_height / 2 - height / 2, filename, text_color);
+                SDL_RenderCopy(renderer, data.texture, NULL, &data.rect);
+                SDL_DestroyTexture(data.texture);   
+            }
+
+            // Do not draw the rest of the frame
+            SDL_RenderPresent(renderer);
+            continue;
+        }
 
         rect.x = 0;
         rect.y = 0;
@@ -196,10 +241,12 @@ static bool init_all(void) {
 	buffer_init(&context);
     if (!logger_init()) return false;
     if (!keybinds_init()) return false;
+    fileman_init(&file_man);
     return true;
 }
 
 static void destroy_all(void) {
+    fileman_destroy(&file_man);
     keybinds_destroy();
     logger_destroy();
 	buffer_free(&context);
@@ -208,7 +255,8 @@ static void destroy_all(void) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 	SDL_Quit();
-    if (fp) fclose(fp);
+    // TODO: Fix double free (again)
+    if (fp && !fp_no_free) fclose(fp);
     if (filename) free(filename);
 }
 
@@ -248,6 +296,13 @@ static bool handle_events(void) {
                 }
             } break;
             case SDLK_UP: {
+                if (file_man_opened) {
+                    if (file_man_cursor > 0) {
+                        file_man_cursor--;
+                    }
+                    continue;
+                }
+
                 if (context.cursor > 0) {
                     context.cursor--;
                     context.lines[context.cursor].cursor =
@@ -255,6 +310,13 @@ static bool handle_events(void) {
                 }
             } break;
             case SDLK_DOWN: {
+                if (file_man_opened) {
+                    if (file_man_cursor < file_man.size-1) {
+                        file_man_cursor++;
+                    }
+                    continue;
+                }
+
                 if (context.cursor < (context.size - 1)) {
                     context.cursor++;
                     context.lines[context.cursor].cursor =
@@ -265,7 +327,31 @@ static bool handle_events(void) {
                 buffer_del(&context);
             } break;
             case SDLK_RETURN: {
+                if (file_man_opened) {
+                    if (choosing_filename) {
+                        fileman_create(&file_man, filename);
+                        choosing_filename = false;
+                    } else {
+                        if (file_man.files[file_man_cursor].ptr) {
+                            buffer_read(&context, file_man.files[file_man_cursor].ptr);
+                            fp = file_man.files[file_man_cursor].ptr;
+                            filename = file_man.files[file_man_cursor].name;
+                            file_man_opened = false;
+                        }
+                    }
+
+                    continue;
+                }
+
                 if (choosing_filename) {
+                    for (size_t i = 0; i <= file_man.size; ++i) {
+                        if (!strcmp(file_man.files[i].name, filename)) {
+                            LOG_DEBUG("Using %s's ptr from filemanager!", filename);
+                            fp = file_man.files[i].ptr;
+                            fp_no_free = true;
+                        }
+                    }
+                
                     buffer_write(&context, fp, filename);
                     LOG_INFO("%s saved!", filename);
                     choosing_filename = false;
@@ -281,6 +367,24 @@ static bool handle_events(void) {
                         buffer_write(&context, fp, filename);
                         LOG_INFO("%s saved!", filename);
                         file_saved = true;
+                    } else {
+                        filename = "Choose a filename!";
+                        choosing_filename = true;
+                    }
+                }
+            } break;
+            case SDLK_f: {
+                // Filemanager keybind: Ctrl + Shift + f
+                if (keybinds_is_down(SDLK_LCTRL) && keybinds_is_down(SDLK_LSHIFT)) {
+                    file_man_opened = !file_man_opened;
+                }
+            } break;
+            case SDLK_a: {
+                // File creation keybind: a (in Filemanager)
+                if (file_man_opened) {
+                    if (filename) {
+                        fileman_create(&file_man, filename);
+                        LOG_INFO("%s created!", filename);
                     } else {
                         filename = "Choose a filename!";
                         choosing_filename = true;

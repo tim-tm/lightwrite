@@ -1,22 +1,33 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
+/*
+    TODO: This will soon need a rework since right now it is pretty slow and unusable for larger files.
+*/
+
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 
 #define MAX_LINE_SIZE 4096
 #define MAX_BUFFER_SIZE 4096
 
+// Start with 4 pre alloced lines and alloc more if needed
+#define BUFFER_DEFAULT_CAPACITY 4
+
 typedef struct _Line_ {
 	char buffer[MAX_LINE_SIZE];
-	unsigned long size;
-	unsigned long cursor;
+	
+    size_t size;
+	size_t cursor;
 } Line;
 
 typedef struct _Buffer_Context_ {
 	Line *lines;
-	unsigned long size;
-	unsigned long cursor;
+	
+    size_t size;
+	size_t cursor;
+    size_t capacity;
 } Buffer_Context;
 
 void line_ins_cursor(Line *line, const char *text);
@@ -31,7 +42,7 @@ void buffer_push_line(Buffer_Context *context);
 void buffer_ins_cursor(Buffer_Context *context, const char *text);
 void buffer_del_cursor(Buffer_Context *context);
 void buffer_del(Buffer_Context *context);
-unsigned long buffer_get_cursor_row(Buffer_Context *context);
+size_t buffer_get_cursor_row(Buffer_Context *context);
 
 // File support
 void buffer_read(Buffer_Context* context, FILE* file);
