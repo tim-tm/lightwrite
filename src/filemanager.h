@@ -9,6 +9,7 @@
 
 // NOTE: This macro needs string.h and stdlib.h
 #define FILEMAN_PUSH(man, file, filename)                                   \
+    man->size++;                                                            \
     if (man->size >= man->capacity) {                                       \
         man->capacity *= 2;                                                 \
         man->files = realloc(man->files, man->capacity * sizeof(File));     \
@@ -16,7 +17,6 @@
                                                                             \
     strcpy(man->files[man->size-1].name, filename);                         \
     man->files[man->size-1].ptr = file;                                     \
-    man->size++;                                                            \
 
 typedef struct _File_ {
     FILE* ptr;
