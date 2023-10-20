@@ -85,14 +85,13 @@ bool fileman_create(File_Manager* man, const char* filename) {
     }
 
     // Add the file to the cached files
-    man->size++;
-    if (man->size >= man->capacity) {
-        man->capacity *= 2;
-        man->files = realloc(man->files, man->capacity * sizeof(File));
-    }
-
-    strcpy(man->files[man->size].name, filename);
-    man->files[man->size].ptr = fp;
-
+    FILEMAN_PUSH(man, fp, filename);
     return true;
+}
+
+void fileman_push(File_Manager* man, FILE* file, const char* filename) {
+    LASSERT(man);
+    LASSERT(file);
+    LASSERT(filename);
+    FILEMAN_PUSH(man, file, filename);
 }

@@ -98,11 +98,13 @@ void buffer_read(Buffer_Context* context, FILE* file) {
     LASSERT(context);
     LASSERT(file);
     
+    buffer_free(context);
     // Clear the buffer.
     buffer_init(context);
 
-    char* line;
-    size_t length;
+    // Always init your vars, this has cost me some debug time :(
+    char* line = NULL;
+    size_t length = 0;
 
     // NOTE: getline is only avalible for systems on _POSIX_C_SOURCE >= 200809L
     // FIXME: This segfaults if the file is a binary file, check for that!!

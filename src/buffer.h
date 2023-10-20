@@ -12,8 +12,8 @@
 #define MAX_LINE_SIZE 4096
 #define MAX_BUFFER_SIZE 4096
 
-// Start with 4 pre alloced lines and alloc more if needed
-#define BUFFER_DEFAULT_CAPACITY 4
+// Start with 16 pre alloced lines and alloc more if needed
+#define BUFFER_DEFAULT_CAPACITY 16
 
 typedef struct _Line_ {
 	char buffer[MAX_LINE_SIZE];
