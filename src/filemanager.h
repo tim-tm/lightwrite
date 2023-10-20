@@ -7,17 +7,6 @@
 
 #define FILEMAN_DEFAULT_CAPACITY 16
 
-// NOTE: This macro needs string.h and stdlib.h
-#define FILEMAN_PUSH(man, file, filename)                                   \
-    man->size++;                                                            \
-    if (man->size >= man->capacity) {                                       \
-        man->capacity *= 2;                                                 \
-        man->files = realloc(man->files, man->capacity * sizeof(File));     \
-    }                                                                       \
-                                                                            \
-    strcpy(man->files[man->size-1].name, filename);                         \
-    man->files[man->size-1].ptr = file;                                     \
-
 typedef struct _File_ {
     FILE* ptr;
     char name[256];
@@ -36,6 +25,5 @@ void fileman_init(File_Manager* man);
 void fileman_destroy(File_Manager* man);
 
 bool fileman_create(File_Manager* man, const char* filename);
-void fileman_push(File_Manager* man, FILE* file, const char* filename);
 
 #endif // !_FILEMANAGER_H_

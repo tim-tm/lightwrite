@@ -12,6 +12,15 @@ static void fileman_collect_files(File_Manager* man) {
     LASSERT(man->files);
 
     while ((man->direntry = readdir(man->dir)) != NULL) {
+        struct stat stbuf;
+        if (stat(man->direntry->d_name, &stbuf) == -1) {
+            LOG_ERROR("Failed to stat %s", man->direntry->d_name);
+            continue;
+        }
+        
+        // TODO: Handle subdirectories
+        if ((stbuf.st_mode & S_IFMT) == S_IFDIR) continue;
+
         if (man->size >= man->capacity) {
             man->capacity *= 2;
             man->files = realloc(man->files, man->capacity * sizeof(File));
@@ -19,15 +28,6 @@ static void fileman_collect_files(File_Manager* man) {
         
         strcpy(man->files[man->size].name, man->direntry->d_name);
         
-        struct stat stbuf;
-        if (stat(man->files[man->size].name, &stbuf) == -1) {
-            LOG_ERROR("Failed to stat %s", man->files[man->size].name);
-            continue;
-        }
-        
-        // TODO: Handle subdirectories
-        if ((stbuf.st_mode & S_IFMT) == S_IFDIR) continue;
-
         // Create a ptr for reading
         man->files[man->size].ptr = fopen(man->files[man->size].name, "r");
         man->size++;
@@ -85,13 +85,14 @@ bool fileman_create(File_Manager* man, const char* filename) {
     }
 
     // Add the file to the cached files
-    FILEMAN_PUSH(man, fp, filename);
-    return true;
-}
+    if (man->size >= man->capacity) {
+        man->capacity *= 2;
+        man->files = realloc(man->files, man->capacity * sizeof(File));
+    }
 
-void fileman_push(File_Manager* man, FILE* file, const char* filename) {
-    LASSERT(man);
-    LASSERT(file);
-    LASSERT(filename);
-    FILEMAN_PUSH(man, file, filename);
+    strcpy(man->files[man->size].name, filename);
+    man->files[man->size].ptr = fp;
+
+    man->size++;
+    return true;
 }

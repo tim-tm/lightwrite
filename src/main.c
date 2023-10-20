@@ -57,8 +57,11 @@ int main(int argc, char** argv) {
         // First read in the data
         FILE* fp = fopen(argv[1], "r");
         // buffer_write will automatically create the file anyways.
-        fileman_push(&file_man, fp, filename);
         if (fp) {
+            file_man.files[0].ptr = fp;
+            strcpy(file_man.files[0].name, filename);
+            file_man.size++;
+                
             buffer_read(&context, fp);
         }
     }
@@ -254,6 +257,7 @@ static void destroy_all(void) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 	SDL_Quit();
+    // NOTE: Filename doesnt need to be free'ed
 }
 
 static bool handle_events(void) {
@@ -325,20 +329,22 @@ static bool handle_events(void) {
             case SDLK_RETURN: {
                 if (file_man_opened) {
                     if (choosing_filename) {
-                        fileman_create(&file_man, filename);
+                        if (!fileman_create(&file_man, filename)) {
+                            // TODO: Print some error message to the screen.
+                        }
+                        filename = NULL;
                         choosing_filename = false;
-                    } else if (file_man.files[file_man_cursor].ptr) {
-                        LOG_DEBUG("Trying to open: %s", file_man.files[file_man_cursor].name);
-                        buffer_read(&context, file_man.files[file_man_cursor].ptr);
-                        filename = file_man.files[file_man_cursor].name;
-                        file_man_opened = false;
+                    } else {
+                        if (file_man.files[file_man_cursor].ptr) {
+                            buffer_read(&context, file_man.files[file_man_cursor].ptr);
+                            filename = file_man.files[file_man_cursor].name;
+                            file_man_opened = false;
+                        }
                     }
-
                     continue;
                 }
 
                 if (choosing_filename) {
-                    LOG_DEBUG("Trying to save %s", file_man.files[0].name);
                     buffer_write(&context, file_man.files[0].ptr, filename);
                     LOG_INFO("%s saved!", filename);
                     choosing_filename = false;
@@ -351,7 +357,6 @@ static bool handle_events(void) {
                 // do not check for file*, buffer_write will create the class anyways.
                 if (keybinds_is_down(SDLK_LCTRL)) {
                     if (filename) {
-                        LOG_DEBUG("Trying to save %s", file_man.files[0].name);
                         buffer_write(&context, file_man.files[0].ptr, filename);
                         LOG_INFO("%s saved!", filename);
                         file_saved = true;
@@ -365,15 +370,13 @@ static bool handle_events(void) {
                 // Filemanager keybind: Ctrl + Shift + f
                 if (keybinds_is_down(SDLK_LCTRL) && keybinds_is_down(SDLK_LSHIFT)) {
                     file_man_opened = !file_man_opened;
-                    filename = NULL;
                 }
             } break;
             case SDLK_a: {
-                // File creation keybind: a (in Filemanager)
-                if (file_man_opened && !choosing_filename) {
+                // File creation keybind: Ctrl + a (in Filemanager)
+                if (keybinds_is_down(SDLK_LCTRL) && file_man_opened && !filename) {
                     filename = "Choose a filename!";
                     choosing_filename = true;
-                    continue;
                 }
             } break;
             }
@@ -387,7 +390,7 @@ static bool handle_events(void) {
                     filename = calloc(1024, sizeof(char));
                 }
                 strncat(filename, ev.text.text, 1024);
-            } else {
+            } else if (!file_man_opened) {
                 buffer_ins_cursor(&context, ev.text.text);
                 file_saved = false;
             }

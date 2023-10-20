@@ -102,7 +102,6 @@ void buffer_read(Buffer_Context* context, FILE* file) {
     // Clear the buffer.
     buffer_init(context);
 
-    // Always init your vars, this has cost me some debug time :(
     char* line = NULL;
     size_t length = 0;
 
