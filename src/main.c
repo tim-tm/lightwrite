@@ -17,9 +17,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define FONT_PATH DATA_DIR "/MonoLisaRegular.ttf"
+
 static int screen_width = 800;
 static int screen_height = 600;
-static const char font_path[] = "resource/MonoLisaRegular.ttf";
 static const SDL_Color text_color = {255, 255, 255, 255};
 
 static SDL_Window* window;
@@ -205,8 +206,8 @@ static bool init_all(void) {
 	}
 
 	if (TTF_Init() < 0) {
-		SDL_Quit();
         LOG_FATAL("TTF-Error: %s", TTF_GetError());
+		SDL_Quit();
 		return false;
 	}
 
@@ -214,29 +215,29 @@ static bool init_all(void) {
 	    SDL_WINDOWPOS_CENTERED, screen_width, screen_height,
 	    SDL_WINDOW_RESIZABLE);
 	if (!window) {
+		LOG_FATAL("SDL-Error: %s", SDL_GetError());
         SDL_Quit();
         TTF_Quit();
-		LOG_FATAL("SDL-Error: %s", SDL_GetError());
 		return false;
 	}
 
 	renderer = SDL_CreateRenderer(
 	    window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
 	if (!renderer) {
+        LOG_FATAL("SDL-Error: %s", SDL_GetError());
         SDL_Quit();
         TTF_Quit();
 		SDL_DestroyWindow(window);
-        LOG_FATAL("SDL-Error: %s", SDL_GetError());
 		return false;
 	}
 
-	font = TTF_OpenFont(font_path, 16);
+	font = TTF_OpenFont(FONT_PATH, 16);
 	if (!font) {
+        LOG_FATAL("TTF-Error: %s", TTF_GetError());
         SDL_Quit();
         TTF_Quit();
 		SDL_DestroyWindow(window);
 		SDL_DestroyRenderer(renderer);
-        LOG_FATAL("TTF-Error: %s", TTF_GetError());
 		return false;
 	}
 

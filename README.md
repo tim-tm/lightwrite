@@ -26,9 +26,6 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
     </li>
     <li>
       <a href="#getting-started">Getting Started</a>
@@ -45,102 +42,68 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-### NOTE: Do not rely on the codebase, this is a beginner project made for education, things may and will heavily change.
-
 This is a really simple GUI-based text editor, which is based on the dramatic editor [ded](https://github.com/tsoding/ded), developed by [tsoding](https://github.com/tsoding), a twitch streamer known for recreational programming. As of right now, lightwrite is using his approach of handling file-content. Even though the code for managing files is not exactly the same, lightwrite will at least use the same datastructures.
 
 * Written in plain C.
 * lightweight (as the name implies)
-* simple codebase (only GNU-Make as a build tool since CMake would be unnecessary)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Built With
-
-* [![SDL2][SDL]][SDL-url]
-* [![SDL2_ttf][SDL_ttf]][SDL_ttf-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
+If you only want to use lightwrite and not mess with it's source, go ahead an grab one of the [avalible releases](https://github.com/tim-tm/lightwrite/releases/latest) (preferably the latest).
+
+prepare the release folder (VERSION stands for the version you've downloaded)
+```sh
+tar -xf lightwrite-VERSION.tar.gz && cd lightwrite-VERSION
+```
+
+building
+```sh
+./configure && make
+```
+
+installing
+```sh
+sudo make install
+```
+
+### Messing with the source
+
 Here you can see how to setup this project locally.
+Since this project is mainly developed in Linux, Windows build is not yet supported.
 
 ### Prerequisites
 
-Since this project is mainly developed in Linux, Windows build is not yet supported.
-Currently this project requires at least GNU-Make version 4.4 since the Makefile is using the .WAIT feature. I would suggest building Make from source, alternatively use a newer pre-built version , [pacman](https://archlinux.org/pacman/) for example provides a newer version of make [pacman-make](https://archlinux.org/packages/core/x86_64/make/).
-
-* [install and setup git](https://git-scm.com/book/en/v2)
-* [gnu make](https://www.gnu.org/software/make/#download)
-* [gnu compiler collection (gcc/g++)](https://gcc.gnu.org/)
-* [SDL2](https://wiki.libsdl.org/SDL2/Installation)
-* [SDL2_ttf](https://github.com/libsdl-org/SDL_ttf/releases)
+* git, autotools, make, gcc
+* sdl2, sdl2_ttf
 
 ### Installation
 
-You could also globally install each dependency, to be ready for compilation.
-Arch Linux example:
+clone the repo and move inside
 ```sh
-sudo pacman -Syu sdl2 sdl2_ttf
+git clone git@github.com:tim-tm/lightwrite.git && cd breakout
 ```
 
-General setup.
-* clone the repo and move inside
-  ```sh
-  git clone git@github.com:tim-tm/lightwrite.git && cd breakout
-  ```
-* setting up the project
-  ```sh
-  make setup
-  ```
-* building
-  ```sh
-  make
-  ```
-
-If you want to clean the build directory run one of the following commands:
-* only cleaning
-  ```sh
-  make clean
-  ```
-* cleaning, checking the setup, rebuilding
-  ```sh
-  make rebuild
-  ```
-
-There is also a command for destroying the setup (aka. deleting the entire build directory)
+setting up the project
 ```sh
-make destroy
+./autogen.sh
 ```
 
-Additionally, if you want to compile a release build without any debug features, specify the following options to make:
-* performing a normal build
-  ```sh
-  make BUILD_TYPE=RELEASE
-  ```
-* performing a entire rebuild
-  ```sh
-  make rebuild BUILD_TYPE=RELEASE
-  ```
-
-Here you can see the folder structure of a built project.
+building
 ```sh
-    .
-    ├── build
-    │   ├── release             # Results of a release compilation will be stored here.
-    │   │   └── ...             # Exactly the same structure as in build.
-    │   ├── resource            # Copy of the resources (done by the Makefile).
-    │   ├── lightwrite          # The debug executable.
-    │   ├── main.o              # Compiled source files.
-    │   └── ...                 # More compiled source files.
-    ├── src                     # All source files.
-    ├── resource
-    │   └── AnyFont.ttf         # By default MonoLisaRegular is used but you could change that to any ttf font. (font selection inside of the editor coming soon)
-    ├── Makefile
-    ├── LICENSE
-    └── README.md
+make -C build
+```
+or
+```sh
+cd build && make
+```
+
+Cleanup
+```sh
+./cleanup.sh
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
