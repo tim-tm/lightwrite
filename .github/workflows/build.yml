@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: install deps
+      run: sudo apt install libsdl2-dev libsdl2-ttf-dev -y
     - name: autogen
       run: ./autogen.sh
     - name: make
