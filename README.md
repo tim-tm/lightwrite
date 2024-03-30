@@ -34,6 +34,7 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
+    <li><a href="#using">Using</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
   </ol>
@@ -52,6 +53,8 @@ This is a really simple GUI-based text editor, which is based on the dramatic ed
 
 <!-- GETTING STARTED -->
 ## Getting Started
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/lightwrite.svg)](https://repology.org/project/lightwrite/versions)
 
 If you only want to use lightwrite and not mess with it's source, go ahead an grab one of the [avalible releases](https://github.com/tim-tm/lightwrite/releases/latest) (preferably the latest).
 
@@ -105,6 +108,19 @@ Cleanup
 ```sh
 ./cleanup.sh
 ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Using
+
+Lightwrite is **not** a vim-like editor (even though I personally prefer such editors).
+
+|     **Keybind**    | **Action**                                  |
+|:------------------:|---------------------------------------------|
+| Ctrl+S             | Save the current buffer                     |
+| Ctrl+Shift+f       | Open the filemanager                        |
+| Ctrl+a             | Create a new file (only in the filemanager) |
+| Up/Down/Left/Right | Navigating up/down/left/right               |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
